@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+corpus/
+work/
+results/runs/
+logs/
+.ruff_cache/
+results/stage_timings.json
+.env
+.env.*
+.DS_Store
+dist/
+*.egg-info/
+.pytest_cache/
+.claude/

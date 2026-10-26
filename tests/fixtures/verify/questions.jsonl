@@ -1,0 +1,6 @@
+{"qid": "verify-01", "query": "How many days of paid leave does a new baker get each year?", "source": "verify", "format": "docx", "level": "file", "gold": {"verify/handbook.docx": 1}, "meta": {"answer": "18 days of paid leave"}}
+{"qid": "verify-02", "query": "How many rye sourdough loaves were sold in July?", "source": "verify", "format": "pdf", "level": "page", "gold": {"verify/report.pdf#p1": 1}, "meta": {"answer": "4,200 loaves"}}
+{"qid": "verify-03", "query": "What share of café visitors asked for longer weekend opening hours?", "source": "verify", "format": "pdf", "level": "page", "gold": {"verify/report.pdf#p2": 1}, "meta": {"answer": "71 percent"}}
+{"qid": "verify-04", "query": "What is the budgeted cost of the deck oven replacement?", "source": "verify", "format": "xlsx", "level": "file", "gold": {"verify/budget.xlsx": 1}, "meta": {"answer": "Deck oven replacement"}}
+{"qid": "verify-05", "query": "How much does the farmers market stall fee cost?", "source": "verify", "format": "xlsx", "level": "file", "gold": {"verify/budget.xlsx": 1}, "meta": {"answer": "Farmers market stall fee"}}
+{"qid": "verify-06", "query": "Which day does the cultured butter supplier deliver?", "source": "verify", "format": "csv", "level": "file", "gold": {"verify/suppliers.csv": 1}, "meta": {"answer": "Cultured butter"}}

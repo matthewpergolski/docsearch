@@ -1,0 +1,78 @@
+[project]
+name = "docsearch"
+version = "0.1.0"
+description = "Mixed-format document search + RAG test bench (Docling, LanceDB, Qwen3 embeddings/reranker, LiteLLM)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "docling>=2.135.0",
+    "huggingface-hub>=1.33.0",
+    "lancedb>=0.40.0",
+    "litellm>=1.104.2",
+    "onnxruntime>=1.30.0",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.6",
+    "pyarrow>=25.0.1",
+    "pyyaml>=6.0.3",
+    "rapidocr==3.9.2",
+    "rich>=15.0.0",
+    "sentence-transformers>=6.1.0",
+    "tantivy>=0.26.2",
+    "torch>=2.14.1",
+    "torchvision>=0.29.1",
+]
+
+[project.optional-dependencies]
+# Pick one: `uv sync --extra cpu` (CPU-only Linux/Windows, or macOS) or `uv sync --extra cuda` (Linux + NVIDIA GPU).
+cpu = ["torch>=2.14.1", "torchvision>=0.29.1"]
+cuda = ["torch>=2.14.1", "torchvision>=0.29.1"]
+ui = [
+    "django>=6.1.2",
+    "django-ninja>=1.7.1",
+]
+
+[project.scripts]
+docsearch = "docsearch:main"
+
+[build-system]
+requires = ["uv_build>=0.12.24,<0.13.0"]
+build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+# Default (no extra): the regular PyPI wheels (MPS built in on macOS; CUDA builds on Linux).
+# `uv sync --extra cpu`: CPU-only wheels. `uv sync --extra cuda`: CUDA 13.0 wheels on Linux.
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu130", extra = "cuda", marker = "sys_platform == 'linux'" },
+    { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform != 'darwin'" },
+]
+torchvision = [
+    { index = "pytorch-cu130", extra = "cuda", marker = "sys_platform == 'linux'" },
+    { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform != 'darwin'" },
+]
+
+[tool.uv]
+conflicts = [[{ extra = "cpu" }, { extra = "cuda" }]]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.10",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["data", "corpus", "work", "results"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]

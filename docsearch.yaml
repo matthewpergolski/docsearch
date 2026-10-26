@@ -1,0 +1,178 @@
+# docsearch configuration. Relative paths resolve against this file's directory.
+# Every key can be overridden with an env var: DOCSEARCH_<SECTION>_<KEY> (e.g. DOCSEARCH_MODELS_DEVICE=cpu).
+paths:
+  data_dir: data            # raw downloads + questions
+  corpus_dir: corpus        # the pooled document folder that gets searched
+  parsed_dir: work/parsed   # Docling JSON per document
+  index_dir: work/index     # LanceDB
+  cache_dir: work/cache     # reranker score cache, query embeddings
+  results_dir: results      # runs.csv, report.html
+
+models:
+  embedder: Qwen/Qwen3-Embedding-0.6B
+  # A dense challenger takes this key by env, with its own index folder (M26):
+  #   DOCSEARCH_MODELS_EMBEDDER=mixedbread-ai/mxbai-embed-large-v1 DOCSEARCH_PATHS_INDEX_DIR=work/index_mxbai
+  #   mixedbread-ai/mxbai-embed-large-v1: Apache-2.0, 335M, 512 tokens, English
+  #   google/embeddinggemma-2: Apache-2.0 + Gemma Prohibited Use Policy (model card), 740M (270M for text), 8,192 tokens; also set
+  #   DOCSEARCH_MODELS_EMBED_DTYPE=float32 (its card: float16 can give bad vectors), index work/index_egemma2 (M29)
+  reranker: Alibaba-NLP/gte-reranker-modernbert-base   # locked 2026-10-09 (decision R1/R2); was Qwen/Qwen3-Reranker-0.6B
+  embedders:                # challengers for `index/eval --embedder <alias>` (vectors stored outside LanceDB)
+    pplx-context:           # MIT; late chunking over consecutive chunks of a document
+      id: perplexity-ai/pplx-embed-context-v1-0.6b
+      revision: b42df969d4d78d1840769e45c68c4e4ce763768b   # pinned: trust_remote_code
+      kind: contextual
+      window_tokens: 4096
+    lateon:                 # Apache-2.0; ColBERT multi-vector (ModernBERT 149M), MaxSim
+      id: lightonai/LateOn
+      revision: 62911e105059585d244384c7d17826e35f669c17
+      kind: multivector
+    pplx-v2-late:           # MIT; multimodal late interaction (Qwen3.5, 340M active), page images, MaxSim
+      id: perplexity-ai/pplx-embed-v2-late-0.6b
+      revision: 8fc2de24534aa3610d85fa59c463313a5f096455
+      kind: visual
+    egemma2:                # Apache-2.0 + Gemma Prohibited Use Policy (model card); multimodal, one vector per page image (Gemma 4, 740M; 280 image tokens)
+      id: google/embeddinggemma-2
+      revision: 914f7f89142e33e77833254d9c9b90c3cef7303b
+      kind: visual
+      vectors: single       # M30 challenger for the page-image path; not the default
+    egemma2-1120:           # Apache-2.0 + Gemma Prohibited Use Policy; the same model with 1,120 image tokens per page (M30 look; not the default)
+      id: google/embeddinggemma-2
+      revision: 914f7f89142e33e77833254d9c9b90c3cef7303b
+      kind: visual
+      vectors: single
+      image_tokens: 1120
+  rerankers:                # aliases for `eval --reranker <alias>` / `search --reranker <alias>`
+    qwen3-0.6b: Qwen/Qwen3-Reranker-0.6B          # Apache-2.0 (baseline)
+    qwen3-4b: Qwen/Qwen3-Reranker-4B              # Apache-2.0
+    zerank-2: zeroentropy/zerank-2-reranker       # Apache-2.0 (model card, checked 2026-10-25), 4B (Qwen3-4B base)
+    gte-modernbert: Alibaba-NLP/gte-reranker-modernbert-base  # Apache-2.0, 149M
+    bge-m3: BAAI/bge-reranker-v2-m3               # Apache-2.0, 568M
+  page_rerankers:           # aliases for `eval --page-reranker <alias>` (M16: scores query + page image)
+    qwen3-vl-2b: Qwen/Qwen3-VL-Reranker-2B        # Apache-2.0, 2B
+    qwen3-vl-8b: Qwen/Qwen3-VL-Reranker-8B        # Apache-2.0, 8B
+  device: auto              # auto -> cuda, then mps (Apple Silicon), then cpu
+  embed_dtype: auto         # auto -> float16 on cuda/mps, float32 on cpu
+  rerank_dtype: auto        # auto -> float16 on cuda/mps, bfloat16 on cpu with AVX512, else float32
+  embed_batch_size: 16
+  rerank_batch_size: 16
+  rerank_batch_sizes:       # per-reranker overrides (alias or HF id); big models get small batches
+    qwen3-4b: 4             # 8 GB fp16 weights; batch 4 keeps peak memory low on a 32 GB Apple-silicon laptop
+    zerank-2: 4
+  rerank_max_length: 384    # locked (R-phase): max tokens per (query, passage) pair fed to the reranker
+  # Models through an API (README "Models through an API"). local = load the embedder and text reranker here;
+  # api = call them on a model server. api runs text-only (visual.default is ignored). Keys come from env vars only.
+  backend: local            # local | api
+  embed_api_url: ""         # e.g. https://models.example.internal/v1 -> POST <url>/embeddings (OpenAI shape)
+  embed_api_model: ""       # the name the server knows; "" = models.embedder
+  embed_api_key_env: DOCSEARCH_EMBED_API_KEY    # name of the env var with the bearer key (unset = no key)
+  embed_api_query_prefix: null  # query lead-in; null = read it from the model's Hugging Face config ("" = none)
+  rerank_api_url: ""        # e.g. https://models.example.internal/v1 -> POST <url>/rerank
+  rerank_api_model: ""      # "" = models.reranker
+  rerank_api_key_env: DOCSEARCH_RERANK_API_KEY
+  rerank_api_field: documents   # request field for the passages: documents (Cohere, Jina, vLLM, Infinity) | texts (TEI)
+  api_timeout_s: 60         # per request
+  api_retries: 3            # extra tries on 5xx, 429, timeout or a lost connection (waits 1, 2, 4 s)
+  api_batch_size: 32        # texts per request
+
+ingest:
+  # Old Word files (.doc) are converted to .docx before parsing (DOC1); the file keeps its name and doc_id.
+  #   soffice:  LibreOffice, MPL-2.0, an external program you install (not bundled); keeps tables and pictures
+  #   textutil: ships with macOS; keeps the text but flattens tables and drops pictures
+  # With no converter, sync skips .doc files and names them; the next sync with a converter picks them up.
+  doc_converter: auto       # auto (soffice, then textutil) | soffice | textutil | off
+
+chunking:
+  max_tokens: 512
+  max_chunks_per_doc: 300   # cap per document (giant spreadsheets otherwise produce 100k+ chunks); capped docs are listed in chunk stats
+  max_parsed_mb: 100        # skip docs whose Docling JSON exceeds this (multi-million-cell sheets); listed as excluded_oversize
+
+search:
+  bm25_k: 100               # candidates from full-text search
+  vector_k: 100             # candidates from vector search
+  rrf_k: 60                 # reciprocal rank fusion constant
+  rerank_min_chars: 40      # adopted (V2): candidates with <40 chars of text keep their fused rank
+  rerank_skip_formats: [slide_image]  # adopted (M3): slides keep their fused rank; gte hurt them (M2)
+  rerank_candidates: 30     # locked (R-phase): fused candidates passed to the reranker
+  page_reranker: qwen3-vl-2b          # adopted (M16b): a vision reranker reorders the top 10 slide pages; "" = off
+  page_rerank_formats: [slide_image]  # adopted (M16b): slides only; on pdf it hurt table pages (M16)
+  top_k: 10
+  abstain_threshold: 0.868  # M6 (measured): p10 of answerable top text-reranker scores, reviewed custom set.
+                            # search: "No confident match" when a text-reranked top hit scores below it;
+                            # eval: the fixed abstention threshold for no-answer questions
+
+sync:                       # `docsearch sync` (incremental; state in paths.sync_manifest)
+  variants: [hybrid]        # chunk variants / LanceDB tables kept up to date
+  gate_tolerance: 0.005     # --gate: promote only if nDCG@10 >= live - tolerance
+  interval: 900             # --watch default, seconds
+  source: ""                # source tag for files not in corpus/manifest.csv ("" = folder name)
+
+logging:
+  dir: logs                 # run logs: logs/run-<timestamp>.log (warnings + library logs)
+  keep_runs: 20             # newest run-*.log files kept; other logs (phase1_*.log ...) are never touched
+
+visual:                     # page-image retrieval (`render`, `index --visual`, `eval --visual`)
+  dpi: 100                  # PDF/office page render resolution (150 dpi measured ~10 s/page on a CPU-only machine)
+  max_side: 1280
+  office_max_pages: 4       # docx/pptx pages rendered per file
+  shard_pages: 8
+  visual_k: 100
+  blind_formats: []         # M4 experiment: e.g. [pptx, csv] keep their text rank in format-aware fusion
+  default: pplx-v2-late     # adopted (V2): `search`/`answer` use format-aware fusion when page vectors exist
+
+sampling:                   # corpus sizing for the CPU run (see README "Sampling")
+  seed: 13
+  vidore_corpora: [vidore_v3_hr]
+  vidore_queries_per_corpus: 150
+  finslides_decks: 12
+  ocb_max_file_mb: 3          # cap for xlsx/csv (row-heavy files explode into chunks)
+  ocb_max_office_doc_mb: 40   # cap for docx/pptx (size is mostly images)
+
+subset:                     # box subset: a CPU-machine slice of the corpus; `--full` (or enabled: false) uses everything
+  enabled: true
+  seed: 13
+  questions_per_source: {vidore_v3_hr: 30, finslides: 60, ocb: 50, pd_images: 28}
+  distractor_ratio: 2       # distractor pages/files = 2x the gold pages/files of the kept questions
+  office_max_chunks: 8      # per-doc chunk cap for docx/pptx/xlsx/csv inside the subset
+
+llm:
+  backend: api              # api (LiteLLM, needs API keys) | cli (subscription CLIs: claude, codex, grok)
+  provider: claude          # claude | openai | grok | ollama
+  timeout_s: 180
+  timeout_s_by_provider:    # per-provider override; grok CLI drafts can run long
+    grok: 300
+  api_models:               # LiteLLM model ids
+    claude: {answer: anthropic/claude-sonnet-5-5, draft: anthropic/claude-haiku-5-5}
+    openai: {answer: openai/gpt-5.6, draft: openai/gpt-5.4-mini}
+    grok: {answer: xai/grok-4.7, draft: xai/grok-4.7}
+    ollama: {answer: ollama/qwen3:8b, draft: ollama/qwen3:8b}
+  cli_models:               # passed to the CLI's --model flag; empty = CLI default
+    claude: {answer: sonnet, draft: haiku, questions: sonnet}
+    openai: {answer: "", draft: "", questions: ""}
+    grok: {answer: "", draft: "", questions: ""}   # "" = grok CLI default model (`grok models` lists them)
+  ollama_api_base: http://localhost:11434
+
+enrich:
+  llm: "off"                # off | local | api: LLM metadata and summaries at index time; search never needs it
+                            # not off: `sync` writes hybrid_ctx_slides (a context line on each slide image, H2) and
+                            # search and the search page read it. Replies are cached in work/cache/enrich
+  backend: cli              # the LLM for the lines: cli (subscription CLI) | api (LiteLLM)
+  provider: claude          # claude | openai | grok | ollama
+  model: haiku              # must be a small model (haiku, mini, nano, flash); ollama takes any local model
+agent:
+  mode: "off"               # off | on: an LLM step after plain search; search never needs it
+  backend: cli              # +agent LLM (the LLM names the page that holds the answer)
+  provider: claude          # the judged answerer in M34h; grok drafted the C3 questions, so not grok
+  model: haiku              # "" = CLI default; openai/gpt-6-astra (codex) gave the same pages on 41 of 45 (M34)
+  gate_k: 5                 # call the LLM only when the top 5 pages hold 2+ pages of one file
+  pages: 10                 # top pages the LLM reads
+  page_chars: 4000          # text per page, retrieved chunks first
+  workers: 4                # LLM calls at once in eval
+
+web:                        # the search page (`docsearch serve`)
+  examples:                 # searches the empty page offers; public questions the default ranks first (m28_default)
+    - How much revenue did IBM generate from Mobile in the third quarter of 2018?
+    - For how many years must Supplier keep records of financial information?
+    - What is the barista annual salary based on assumptions?
+    - Which form lists acceptable documents in List A, List B and List C?
+    - ILO Convention C189 ratification EU countries 2024
+    - What date had the most ridership?

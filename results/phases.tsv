@@ -1,0 +1,12 @@
+phase	name	state	result
+0	Verification	Done	One script checks lint, unit tests and the real sync, search and eval on a small test folder.
+A	Metadata and filters	Done	Filters by format, date and folder; dates come from inside each file. Ranking unchanged.
+C	Tables, read by an LLM	Done	With agent mode on, Claude Haiku reads the top 10 pages and names the page with the answer. Table questions +0.166 nDCG@10 [+0.102, +0.237]; 35 of the 68 questions come from one PDF.
+G	Models through an API	Done	Embedder and reranker can run on a model server (OpenAI-compatible); results equal the local models.
+B	File first, then page	Stopped	Ranking files first loses more right answers than it fixes (28 fixed, 256 lost).
+D	Agentic search	Stopped	Rewriting the question and searching again changed nothing (D1); the slide-deck trigger made slides worse (D2).
+E	Results display	Done	Results grouped by file, snippets around the query's words, a "No confident match" line. Ranking unchanged.
+F	Real files, held out	Waiting	A held-out set on a real file collection that is not published. A 34-question LLM draft was easy by construction (the right file first for 27). A 40-question hand-written baseline followed (row F2 in decisions.tsv). Waiting for reviewed questions.
+H	Context line per chunk	Decision open	Text files: no gain (held-out +0.018, interval includes 0). Slide images, every slide with a line: right slide first 155 -> 170 of 223 (+enrich only; needs an LLM at index time). Whether to turn it on for slides is not decided (row H2).
+I	Search UI	Done	A local web page over the same search: grouped results, filters, light and dark themes. The API returns exactly what the command line returns.
+J	Entity graph across files	Stopped	A look only, no build and no LLM call: the pooled corpus holds few real links between files, so the question sets cannot judge a graph. Open: drop it, or judge it on files that do link.

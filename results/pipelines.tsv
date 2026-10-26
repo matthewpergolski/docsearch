@@ -1,0 +1,12 @@
+id	label	run	note
+default	Today's default	m28_default	Keywords, text embedding, page pictures, text reranker, and the vision reranker for slide images; a big spreadsheet shares its chunk cap over its tables (M28)
+default_m16b	Default before the spreadsheet fix (M16b)	m16b_pagerr_slides	The same pipeline, but the first table of a big spreadsheet can take every chunk
+pictures_rerank	Page pictures + reranker (M3)	m3_skip_slide_rerank	The default before the vision reranker
+pictures	Page pictures, no reranker	20261012-111218-hybrid_visual_fa_pplx-v2-late_norerank	Keywords, text embedding and page pictures
+text_rerank	Text only + reranker	20261009-220946-baseline_hybrid_rerank	Keywords, text embedding and the text reranker; no page pictures
+text_rerank_mxbai	Text only + reranker, mxbai embedder	m26_mxbai_rerank	Keywords, mxbai-embed-large-v1 and the text reranker; no page pictures. Slide images are not text-reranked in this run
+text_rerank_egemma2	Text only + reranker, EmbeddingGemma 2 embedder	m29_egemma2_rerank	Keywords, EmbeddingGemma 2 and the text reranker; no page pictures. Slide images are not text-reranked in this run
+one_model	One model for text and pictures, no reranker	m30_onemodel	EmbeddingGemma 2 for text and for page pictures, plus keywords; no rerankers (a one-model design, on our parser)
+text	Text only, no reranker	20261009-220946-baseline_hybrid_norerank	Keywords and text embedding
+embedding	Text embedding only	20261009-220957-ablation_vector_only	No keywords, no reranker
+keywords	Keywords only	20261009-220950-ablation_bm25_only	No models at all

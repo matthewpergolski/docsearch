@@ -1,0 +1,298 @@
+@import "tailwindcss";
+/* The fonts ship with the page (OFL-1.1), so every system shows the same type and nothing loads from the network. */
+@import "@fontsource-variable/mulish/wght.css";
+@import "@fontsource/charis-sil/latin-400.css";
+@import "@fontsource/charis-sil/latin-400-italic.css";
+@import "@fontsource/charis-sil/latin-ext-400.css";
+@import "@fontsource/charis-sil/latin-ext-400-italic.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Colors are CSS variables; Tailwind classes name them (bg-page, text-fg, ...). Light by default, dark when the
+   page says so or, before the script runs, when the system prefers dark and no light choice is stored.
+   Ink on a cool paper grey. The page pictures are the only objects with a shadow, and the highlighter on the
+   query's words is the only color. */
+:root {
+  --page: #eceef1;
+  --sheet: #ffffff;
+  --fg: #1a2130;
+  --muted: #687182;
+  --line: rgba(26, 33, 48, 0.12);
+  --hl: #f2d96b;
+  --hl-fg: #1a2130;
+  --warn: #8a6a12;
+  --bad: #a33a2a;
+  --shadow: rgba(26, 33, 48, 0.28);
+  --fmt-pdf: #b5543f;
+  --fmt-docx: #4a6ea3;
+  --fmt-xlsx: #4a8a62;
+  --fmt-pptx: #c27a3a;
+  --fmt-slide: #a68440;
+  --fmt-csv: #438883;
+  --fmt-image: #7d65a0;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --page: #171c24;
+  --hl: #dcc25c;
+  --sheet: #212834;
+  --fg: #e7eaef;
+  --muted: #9aa3b2;
+  --line: rgba(231, 234, 239, 0.12);
+  --warn: #e3c46a;
+  --bad: #f09a86;
+  --shadow: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --page: #171c24;
+    --hl: #dcc25c;
+    --sheet: #212834;
+    --fg: #e7eaef;
+    --muted: #9aa3b2;
+    --line: rgba(231, 234, 239, 0.12);
+    --warn: #e3c46a;
+    --bad: #f09a86;
+    --shadow: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-sheet: var(--sheet);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-hl: var(--hl);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  /* The interface speaks in a sans; what the files say is set in a book serif. */
+  --font-ui: "Mulish Variable", system-ui, sans-serif;
+  --font-text: "Charis SIL", Georgia, serif;
+}
+
+/* In a layer, so Tailwind's utilities win over these. */
+@layer base {
+  html {
+    background: var(--page);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--page);
+    color: var(--fg);
+    font-family: var(--font-ui);
+    font-feature-settings: "kern", "liga";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 3px;
+  }
+
+  input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
+  mark.hl {
+    color: var(--hl-fg);
+    background: var(--hl);
+    border-radius: 2px;
+    padding: 0 0.1em;
+    box-decoration-break: clone;
+  }
+}
+
+/* A page picture lies on the page like paper. On hover it lifts to a readable size, after a beat, so passing the
+   pointer over the list does not set it off. */
+.sheet {
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 10px 24px -14px var(--shadow);
+  transform-origin: top left;
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 260ms ease;
+}
+
+/* Not on a wide screen: the page preview beside the results shows the page there. */
+@media (hover: hover) and (min-width: 640px) and (max-width: 1279.98px) {
+  .sheet:hover {
+    z-index: 20;
+    transform: scale(3);
+    transition-delay: 180ms;
+    box-shadow:
+      0 0 0 0.33px var(--line),
+      0 12px 28px -10px var(--shadow);
+  }
+}
+
+/* A file with no page picture: a blank sheet ruled for its kind. */
+.sheet-lines,
+.sheet-grid {
+  --rule: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+
+.sheet-lines {
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 7px, var(--rule) 7px 8px) 16% 14% / 68% 72% no-repeat
+    var(--sheet);
+}
+
+.sheet-grid {
+  background:
+    repeating-linear-gradient(to right, transparent 0 17px, var(--rule) 17px 18px) 0 0 / 100% 100%,
+    repeating-linear-gradient(to bottom, transparent 0 9px, var(--rule) 9px 10px) 0 0 / 100% 100% var(--sheet);
+}
+
+/* The search field sits low on the empty page and moves to the top when a search starts. */
+.stage {
+  transition: padding-top 480ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* While a search runs, a highlighter-colored light passes along the field's lower edge, as a scanner reads a
+   page. */
+.scan {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--hl), transparent);
+  animation: scan 1.3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes scan {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+/* The first search for a text, before any answer: blank sheets, each read by a light moving down the page. */
+.ghost-sheet {
+  position: relative;
+  overflow: hidden;
+  background: var(--sheet);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.ghost-sheet::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 35%;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--hl) 45%, transparent), transparent);
+  animation: read 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes read {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(300%);
+  }
+}
+
+.ghost-line {
+  height: 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fg) 7%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan::after,
+  .ghost-sheet::after {
+    animation: none;
+    transform: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+
+  .sheet,
+  .stage {
+    transition: none;
+  }
+}
+
+/* A file type as a tiny sheet drawn for its kind, in the search progress. */
+.glyph {
+  --rule: color-mix(in srgb, var(--fg) 14%, transparent);
+  position: relative;
+  overflow: hidden;
+  width: 1.125rem;
+  aspect-ratio: 17 / 22;
+  border-radius: 2px;
+  background-color: var(--sheet);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.glyph-lines {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 3px, var(--rule) 3px 4px);
+  background-size: 64% 70%;
+  background-position: 50% 45%;
+  background-repeat: no-repeat;
+}
+
+.glyph-grid {
+  background-image:
+    repeating-linear-gradient(to right, transparent 0 4px, var(--rule) 4px 5px),
+    repeating-linear-gradient(to bottom, transparent 0 3px, var(--rule) 3px 4px);
+}
+
+.glyph-wide {
+  width: 1.75rem;
+  aspect-ratio: 16 / 10;
+  background-image:
+    linear-gradient(var(--rule), var(--rule)),
+    repeating-linear-gradient(to bottom, transparent 0 3px, var(--rule) 3px 4px);
+  background-size:
+    60% 2px,
+    70% 50%;
+  background-position:
+    20% 22%,
+    30% 80%;
+  background-repeat: no-repeat;
+}
+
+.glyph-image {
+  background-image:
+    linear-gradient(160deg, transparent 55%, var(--rule) 55%),
+    radial-gradient(circle at 70% 30%, var(--rule) 18%, transparent 20%);
+}
+
+/* A step that runs: a highlighter-colored light passes down the sheet. */
+.scanning::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 45%;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--hl) 70%, transparent), transparent);
+  animation: read 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanning::after {
+    animation: none;
+    transform: none;
+    height: 100%;
+    opacity: 0.4;
+  }
+}
