@@ -2,9 +2,8 @@
 
 ## Setup and checks
 - Python runs through [uv](https://docs.astral.sh/uv/): `uv sync`. Do not use pip; do not edit `.venv/`.
-- Before a pull request, run both and make them pass:
-  - `uv run ruff check src tests scripts` and `uv run ruff format --check src tests scripts`
-  - `uv run python -m unittest discover -s tests`
+- Before a pull request, run `./scripts/check` and make it pass (ruff check, ruff format, unit tests).
+  CI runs the same command.
 - Write a failing test first for a bug fix, then the fix.
 - Keep changes small and on task. Match the local style.
 - The default pipeline uses only models with a permissive license (Apache-2.0, MIT or CDLA-Permissive-2.0). A

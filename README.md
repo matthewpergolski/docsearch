@@ -119,11 +119,10 @@ The steps can also be run one at a time:
 | `uv run --extra ui docsearch serve [--host H] [--port P]` | The local search page and its API (default `127.0.0.1:8765`; see "Search page"; `scripts/serve.sh` builds the page first) |
 | `uv run docsearch llm-status` | Which LLM backends are usable here (never prints keys) |
 
-Tests and lint:
+Tests and lint (same command as CI):
 
 ```bash
-uv run python -m unittest discover -s tests
-uv run ruff check src tests scripts && uv run ruff format --check src tests scripts
+./scripts/check
 ```
 
 ## Search results
