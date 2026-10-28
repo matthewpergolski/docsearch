@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Single entrypoint for local and CI quality checks (ruff + unit tests).
+# Run after `uv sync` (CI: sync with extras in a prior step, then this script).
+# Identity / PR-body gates live in separate workflows; do not add them here.
+set -euo pipefail
+
+REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+cd "$REPO"
+
+# --no-sync: keep the venv from the prior sync (CI installs cpu+ui extras first).
+UV=(uv run --no-sync)
+
+echo "==> ruff check"
+"${UV[@]}" ruff check src tests scripts
+
+echo "==> ruff format"
+"${UV[@]}" ruff format --check src tests scripts
+
+echo "==> unit tests"
+"${UV[@]}" python -m unittest discover -s tests
+
+echo "OK"
