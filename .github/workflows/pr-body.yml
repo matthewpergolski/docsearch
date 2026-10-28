@@ -1,0 +1,35 @@
+# Enforce the six-section PR template, a mermaid fence, and no agent stamps.
+name: pr-body
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Proves bad bodies fail and a good body passes (does not use the live PR body).
+  self-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests for check_pr_body
+        run: python3 -m unittest tests.test_check_pr_body -v
+
+  # Live PR body must satisfy the same rules.
+  lint-pr-body:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write PR body
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          mkdir -p /tmp/pr-check
+          printf '%s' "$PR_BODY" > /tmp/pr-check/body.md
+      - name: Check PR body
+        run: python3 scripts/check_pr_body.py /tmp/pr-check/body.md
