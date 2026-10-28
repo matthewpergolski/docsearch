@@ -102,9 +102,21 @@ class TestCheckPrBody(unittest.TestCase):
         self.assertEqual(mod.check_body(body), [])
 
     def test_cursor_footer_marker_fails(self):
-        body = _good_body() + "\n<!-- CURSOR_AGENT_PR_BODY_END -->\n"
+        # Marker inside the author text (not a transport wrapper pair).
+        body = _good_body().replace(
+            "## Summary\n",
+            "## Summary\n\n<!-- CURSOR_AGENT_PR_BODY_END -->\n",
+            1,
+        )
         errors = mod.check_body(body)
         self.assertTrue(any("Cursor footer" in e for e in errors), errors)
+
+    def test_transport_wrapper_around_good_body_passes(self):
+        wrapped = (
+            "<!-- CURSOR_AGENT_PR_BODY_BEGIN -->\n" + _good_body() + "\n<!-- CURSOR_AGENT_PR_BODY_END -->\n"
+            '<div><a href="https://example.com/agent">open</a></div>\n'
+        )
+        self.assertEqual(mod.check_body(wrapped), [])
 
     def test_generated_with_fails(self):
         body = _good_body() + "\nGenerated with assistance.\n"

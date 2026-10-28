@@ -71,6 +71,22 @@ _MODEL_ID = re.compile(
     r")\b",
 )
 
+# Transport wrappers some PR tools add around the author body. Stripped before
+# checks so the gate judges the description, not the wrapper; the same markers
+# still fail when they appear inside the author text.
+_WRAPPER_BEGIN = "<!-- CURSOR_AGENT_PR_BODY_BEGIN -->"
+_WRAPPER_END = "<!-- CURSOR_AGENT_PR_BODY_END -->"
+
+
+def author_body(raw: str) -> str:
+    """Return the author-written PR body, dropping known transport wrappers."""
+    text = raw if raw is not None else ""
+    begin = text.find(_WRAPPER_BEGIN)
+    end = text.find(_WRAPPER_END)
+    if begin != -1 and end != -1 and begin < end:
+        return text[begin + len(_WRAPPER_BEGIN) : end].strip("\n")
+    return text
+
 
 def _strip_fences(body: str) -> str:
     """Return body with fenced code blocks replaced by blank lines (keep line count)."""
@@ -142,7 +158,7 @@ def check_forbidden(body: str) -> list[str]:
 
 def check_body(body: str) -> list[str]:
     """Return all problems for a PR body (empty when the body is clean)."""
-    text = body if body is not None else ""
+    text = author_body(body if body is not None else "")
     return check_headings(text) + check_mermaid(text) + check_forbidden(text)
 
 
