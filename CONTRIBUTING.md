@@ -7,6 +7,15 @@
   - `uv run python -m unittest discover -s tests`
 - Write a failing test first for a bug fix, then the fix.
 - Keep changes small and on task. Match the local style.
+- **Neutral git identity.** Author, committer, and any `Co-authored-by` /
+  `Signed-off-by` trailer must be
+  `docsearch contributors <docsearch@users.noreply.github.com>`. Added file
+  lines may use that address or generic examples (`git@github.com`,
+  `*@example.*`); other personal-looking addresses fail the check (paths
+  under `tests/` are skipped for the file-text scan). Locally:
+  `python3 scripts/check_identity.py origin/main..HEAD`. Pull requests and
+  pushes to `main` run the same check in CI (`.github/workflows/identity.yml`).
+  Unit proof: `uv run python -m unittest tests.test_check_identity`.
 - The default pipeline uses only models with a permissive license (Apache-2.0, MIT or CDLA-Permissive-2.0). A
   new default must keep to this rule.
 - An optional challenger may carry other terms, for example a use policy. It stays off by default, and
