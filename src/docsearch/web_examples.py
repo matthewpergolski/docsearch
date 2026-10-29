@@ -65,10 +65,12 @@ def _write_cache(path: Path, key: str, examples: list[str]) -> None:
 def draft_from_chunks(cfg: Config, n: int = DEFAULT_N, seed: int = 11, client=None,
                       chunks: list[dict] | None = None) -> list[str]:  # fmt: skip
     """Sample chunks via questions.Drafter and keep the drafted query strings."""
+    from .chunk import search_variant
     from .llm import LLMClient, LLMError, LLMUnavailable, check_available, settings
     from .questions import Drafter, load_chunks, page_images
 
-    chunks = chunks if chunks is not None else load_chunks(cfg)
+    # Same variant corpus_key fingerprints (hybrid_ctx_slides when enrich.llm is on).
+    chunks = chunks if chunks is not None else load_chunks(cfg, search_variant(cfg))
     if not chunks:
         return []
     if client is None:

@@ -84,6 +84,29 @@ class TestWebExamples(unittest.TestCase):
             self.assertEqual(len(qs), 2)
             self.assertTrue(all(q.endswith("?") for q in qs))
 
+    def test_enrich_on_drafts_from_search_variant_not_hybrid(self):
+        """When enrich.llm is on, draft must load search_variant chunks (not always hybrid)."""
+        from docsearch import web_examples as W
+        from docsearch.chunk import SLIDE_CTX
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            cfg = _cfg(root, ["yaml only fallback"])
+            cfg.raw["enrich"]["llm"] = "local"
+            # Only the enrich search variant exists; hybrid is absent on purpose.
+            _write_chunks(
+                root,
+                [
+                    "Enriched slide context: revenue grew 12% to $4.2B in 2019; margins 41% and 3 pts. " * 4,
+                    "Enriched slide context: supplier keeps records for 7 years under the agreement. " * 4,
+                ],
+                name=f"{SLIDE_CTX}.jsonl",
+            )
+            self.assertTrue(W.corpus_key(cfg).startswith(f"{SLIDE_CTX}.jsonl:"))
+            qs = W.draft_from_chunks(cfg, n=1, client=FakeDraftClient())
+            self.assertEqual(len(qs), 1)
+            self.assertTrue(qs[0].endswith("?"))
+
     def test_no_chunks_returns_yaml_fallback(self):
         from docsearch import web_examples as W
 
