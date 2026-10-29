@@ -203,7 +203,8 @@ uv run --extra ui docsearch serve                           # adds Django and Dj
 - "No confident match" shows above the results, as in `search`.
 - The LLM toggle shows only when `agent.mode` is `on`. Plain search is the default.
 - Themes: light and dark. The default follows the system; the button at the top switches to the other theme.
-- The empty page offers the searches in `web.examples` (`docsearch.yaml`).
+- The empty page offers searches drafted from the ingested corpus (cached under `data/web_examples.json`).
+  With no chunks yet, it falls back to `web.examples` in `docsearch.yaml`.
 - The models load in the background when the server starts, and one example search runs, so the first real
   search does not pay one-time GPU costs (ready after about 24 s on an Apple-silicon laptop [measured: 1 run]). They stay
   loaded; the page says so until they are ready. One search runs at a time. The

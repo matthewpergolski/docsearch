@@ -78,7 +78,9 @@ def warm(cfg) -> None:
                 if page := cfg["search"].get("page_reranker"):
                     models.load_page_reranker(cfg, page).model  # noqa: B018 - the property loads the weights
             # one real search: the first run of each model pays one-time GPU costs (first search 8 s, then 1 s)
-            display.run(cfg, str((cfg["web"]["examples"] or ["warm up"])[0]), agent=False)
+            from ..web_examples import examples as web_examples
+
+            display.run(cfg, str((web_examples(cfg) or ["warm up"])[0]), agent=False)
     except Exception:  # noqa: BLE001 - the server still runs; the first search loads what it needs and says why
         log.exception("loading the models at start failed")
     finally:
@@ -88,10 +90,11 @@ def warm(cfg) -> None:
 @api.get("/config")
 def config(request):
     from ..meta import read_meta
+    from ..web_examples import examples as web_examples
 
     cfg = _cfg()
     return {"agent": cfg["agent"]["mode"] == "on", "formats": known_formats(), "ready": READY.is_set(),
-            "examples": [str(q) for q in cfg["web"]["examples"]],
+            "examples": web_examples(cfg),
             "filters": bool(read_meta(cfg))}  # fmt: skip  # filters need file metadata (docsearch meta)
 
 
