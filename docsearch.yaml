@@ -169,7 +169,7 @@ agent:
   workers: 4                # LLM calls at once in eval
 
 web:                        # the search page (`docsearch serve`)
-  examples:                 # searches the empty page offers; public questions the default ranks first (m28_default)
+  examples:                 # fallback when nothing is ingested; live examples come from the corpus (see web_examples)
     - How much revenue did IBM generate from Mobile in the third quarter of 2018?
     - For how many years must Supplier keep records of financial information?
     - What is the barista annual salary based on assumptions?

@@ -44,7 +44,7 @@ export interface ServerConfig {
   agent: boolean;
   formats: string[];
   ready: boolean; // the server has loaded the search models
-  examples: string[]; // searches the empty page offers (docsearch.yaml web.examples)
+  examples: string[]; // searches the empty page offers (corpus-drafted, else web.examples)
   filters?: boolean; // file metadata exists (docsearch meta); filters need it
 }
 
